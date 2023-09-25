@@ -1,18 +1,17 @@
 package com.example.restspringapp.repo;
 
 import com.example.restspringapp.domain.task.Task;
-import com.example.restspringapp.domain.user.User;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Optional;
 
-@Repository
+@Mapper
 public interface TaskRepo {
     Optional<Task> findById(Long id);
     List<Task> findAllByUserId(Long userId);
-    void assignToUserById(Long taskId, Long userId);
+    void assignToUserById(@Param("taskId") Long taskId, @Param("userId") Long userId);
     void update(Task task);
     void create(Task task);
     void delete(Long id);

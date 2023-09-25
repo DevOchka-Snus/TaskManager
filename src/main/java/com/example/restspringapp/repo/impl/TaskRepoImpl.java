@@ -12,7 +12,7 @@ import java.sql.*;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
+//@Repository
 @RequiredArgsConstructor
 public class TaskRepoImpl implements TaskRepo {
 
@@ -26,7 +26,7 @@ public class TaskRepoImpl implements TaskRepo {
                    t.expirationdate as task_expiration_date,
                    t.status as task_status
             FROM tasks t
-            WHERE id = ?""";
+            WHERE t.id = ?""";
 
     private final String FIND_ALL_BY_USER_ID = """
             SELECT t.id as task_id,
@@ -122,10 +122,10 @@ public class TaskRepoImpl implements TaskRepo {
                 statement.setString(3, task.getTag());
             }
 
-            if (task.getExpirationTime() == null) {
+            if (task.getExpirationDate() == null) {
                 statement.setNull(4, Types.TIMESTAMP);
             } else {
-                statement.setTimestamp(4, Timestamp.valueOf(task.getExpirationTime()));
+                statement.setTimestamp(4, Timestamp.valueOf(task.getExpirationDate()));
             }
 
             statement.setString(5, task.getStatus().name());
@@ -157,10 +157,10 @@ public class TaskRepoImpl implements TaskRepo {
                 statement.setString(3, task.getTag());
             }
 
-            if (task.getExpirationTime() == null) {
+            if (task.getExpirationDate() == null) {
                 statement.setNull(4, Types.TIMESTAMP);
             } else {
-                statement.setTimestamp(4, Timestamp.valueOf(task.getExpirationTime()));
+                statement.setTimestamp(4, Timestamp.valueOf(task.getExpirationDate()));
             }
 
             statement.setString(5, task.getStatus().name());
