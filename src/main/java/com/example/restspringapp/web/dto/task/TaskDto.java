@@ -4,12 +4,14 @@ import com.example.restspringapp.domain.task.Status;
 import com.example.restspringapp.web.dto.validation.OnCreate;
 import com.example.restspringapp.web.dto.validation.OnUpdate;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class TaskDto {
@@ -22,12 +24,12 @@ public class TaskDto {
 
     @Length(max = 255, message = "Description length must be smaller than 255", groups = {OnCreate.class, OnUpdate.class})
     private String description;
-
-    @Length(max = 255, message = "Tag length must be smaller than 255", groups = {OnCreate.class, OnUpdate.class})
-    private String tag;
     private Status status;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.TIME)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
-    private LocalDateTime expirationTime;
+    private LocalDateTime expirationDate;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private List<String> images;
 }

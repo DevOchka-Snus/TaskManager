@@ -9,6 +9,7 @@ import com.example.restspringapp.web.dto.auth.JwtResponse;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -37,43 +41,43 @@ public class JwtTokenProvider {
 
     @PostConstruct
     public void init() {
-        this.key = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
+        key = Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes());
     }
 
-    public String createAccessToken(Long userId, String email, Set<Role> roles) {
+    public String createAccessToken(final Long userId,
+                                    final String email,
+                                    final Set<Role> roles) {
         Claims claims = Jwts.claims().setSubject(email);
         claims.put("id", userId);
         claims.put("roles", resolveRoles(roles));
-        Date now = new Date();
-        Date validity = new Date(now.getTime() + jwtProperties.getAccess());
+        Instant validity = Instant.now()
+                .plus(jwtProperties.getAccess(), ChronoUnit.HOURS);
         return Jwts.builder()
                 .setClaims(claims)
-                .setIssuedAt(now)
-                .setExpiration(validity)
+                .setExpiration(Date.from(validity))
                 .signWith(key)
                 .compact();
     }
 
-    private List<String> resolveRoles(Set<Role> roles) {
+    private List<String> resolveRoles(final Set<Role> roles) {
         return roles.stream()
                 .map(Enum::name)
                 .collect(Collectors.toList());
     }
 
-    public String createRefreshToken(Long userId, String email) {
+    public String createRefreshToken(final Long userId, final String email) {
         Claims claims = Jwts.claims().setSubject(email);
         claims.put("id", userId);
-        Date now = new Date();
-        Date validity = new Date(now.getTime() + jwtProperties.getRefresh());
+        Instant validity = Instant.now()
+                .plus(jwtProperties.getRefresh(), ChronoUnit.DAYS);
         return Jwts.builder()
                 .setClaims(claims)
-                .setIssuedAt(now)
-                .setExpiration(validity)
-                .signWith(key)
+                .setExpiration(Date.from(validity))
+                .signWith(SignatureAlgorithm.HS256, key)
                 .compact();
     }
 
-    public JwtResponse refreshUserToken(String refreshToken) {
+    public JwtResponse refreshUserToken(final String refreshToken) {
         JwtResponse jwtResponse = new JwtResponse();
         if (!isTokenValidated(refreshToken)) {
             throw new AccessDeniedException();
@@ -87,7 +91,7 @@ public class JwtTokenProvider {
         return jwtResponse;
     }
 
-    private String getId(String refreshToken) {
+    private String getId(final String refreshToken) {
         return Jwts
                 .parserBuilder()
                 .setSigningKey(key)
@@ -98,7 +102,7 @@ public class JwtTokenProvider {
                 .toString();
     }
 
-    public boolean isTokenValidated(String refreshToken) {
+    public boolean isTokenValidated(final String refreshToken) {
         Jws<Claims> claims = Jwts
                 .parserBuilder()
                 .setSigningKey(key)
@@ -107,13 +111,13 @@ public class JwtTokenProvider {
         return !claims.getBody().getExpiration().before(new Date());
     }
 
-    public Authentication getAuthentication(String token) {
+    public Authentication getAuthentication(final String token) {
         String email = getEmail(token);
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
-    private String getEmail(String token) {
+    private String getEmail(final String token) {
         return Jwts
                 .parserBuilder()
                 .setSigningKey(key)
