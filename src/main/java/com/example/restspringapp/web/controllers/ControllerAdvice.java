@@ -1,12 +1,10 @@
 package com.example.restspringapp.web.controllers;
 
-import com.example.restspringapp.domain.exception.AccessDeniedException;
-import com.example.restspringapp.domain.exception.ExceptionBody;
-import com.example.restspringapp.domain.exception.ResourceMappingException;
-import com.example.restspringapp.domain.exception.ResourceNotFoundException;
+import com.example.restspringapp.domain.exception.*;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -66,15 +64,28 @@ public class ControllerAdvice {
         return exceptionBody;
     }
 
+    @ExceptionHandler(ImageUploadException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ExceptionBody handleImageUpload(ImageUploadException e) {
+        return new ExceptionBody(e.getMessage());
+    }
+
     @ExceptionHandler(AuthenticationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ExceptionBody handleAuthentication(AuthenticationException e) {
         return new ExceptionBody("Authentication failed");
     }
 
+    @ExceptionHandler(UsernameNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ExceptionBody handleUsernameNotFound(UsernameNotFoundException e) {
+        return new ExceptionBody(e.getMessage());
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ExceptionBody handleException(Exception e) {
+        e.printStackTrace();
         return new ExceptionBody("Internal error");
     }
 }

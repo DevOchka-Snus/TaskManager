@@ -7,6 +7,7 @@ public interface UserService {
     User getByEmail(String email);
     User create(User user);
     User update(User user);
+    User getTaskAuthor(Long taskId);
     boolean isTaskOwner(Long userId, Long taskId);
     void deleteUser(Long id);
 }
