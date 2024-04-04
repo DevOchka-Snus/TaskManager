@@ -1,41 +1,49 @@
 package com.example.restspringapp.web.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.AllArgsConstructor;
-import lombok.SneakyThrows;
-import org.springframework.security.core.Authentication;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.filter.GenericFilterBean;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-@AllArgsConstructor
-public class JwtTokenFilter extends GenericFilterBean {
-
-    private final JwtTokenProvider jwtTokenProvider;
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class JwtTokenFilter extends OncePerRequestFilter {
+    private final JwtUtils jwtUtils;
 
     @Override
-    @SneakyThrows
-    public void doFilter(final ServletRequest servletRequest,
-                         final ServletResponse servletResponse,
-                         final FilterChain filterChain) {
-        String bearerToken = ((HttpServletRequest) servletRequest).getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            bearerToken = bearerToken.substring(7);
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String token = request.getHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
         }
-        try {
-            if (bearerToken != null && jwtTokenProvider.isTokenValidated(bearerToken)) {
-                Authentication authentication = jwtTokenProvider.getAuthentication(bearerToken);
-                if (authentication != null) {
+
+        if (token != null) {
+            try {
+                var username = jwtUtils.getUsername(token);
+                var roles = jwtUtils.getRoles(token);
+                if (username != null && roles != null) {
+                    var authentication = new UsernamePasswordAuthenticationToken(
+                            username,
+                            null,
+                            roles
+                    );
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 }
+            } catch (ExpiredJwtException e) {
+                log.error("Token is expired");
             }
-        } catch (Exception ignored) {}
+        }
 
-        filterChain.doFilter(servletRequest, servletResponse);
+        filterChain.doFilter(request, response);
     }
 }

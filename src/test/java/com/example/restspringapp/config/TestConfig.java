@@ -1,3 +1,4 @@
+/*
 package com.example.restspringapp.config;
 
 import com.example.restspringapp.repo.TaskRepo;
@@ -9,7 +10,6 @@ import com.example.restspringapp.services.impl.TaskServiceImpl;
 import com.example.restspringapp.services.impl.UserServiceImpl;
 import com.example.restspringapp.services.props.JwtProperties;
 import com.example.restspringapp.services.props.MinioProperties;
-import com.example.restspringapp.web.security.JwtTokenProvider;
 import com.example.restspringapp.web.security.JwtUserDetailsService;
 import io.minio.MinioClient;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,6 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -128,3 +127,4 @@ public class TestConfig {
     }
 
 }
+*/

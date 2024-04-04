@@ -2,7 +2,7 @@ package com.example.restspringapp.config;
 
 import com.example.restspringapp.services.props.MinioProperties;
 import com.example.restspringapp.web.security.JwtTokenFilter;
-import com.example.restspringapp.web.security.JwtTokenProvider;
+import com.example.restspringapp.web.security.JwtUserDetailsService;
 import com.example.restspringapp.web.security.expressions.CustomSecurityExpressionHandler;
 import io.minio.MinioClient;
 import io.swagger.v3.oas.models.Components;
@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -37,7 +38,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor(onConstructor = @__(@Lazy))
 public class AppConfig {
 
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtUserDetailsService jwtUserDetailsService;
+    private final JwtTokenFilter jwtTokenFilter;
 
     private final ApplicationContext applicationContext;
 
@@ -90,6 +92,14 @@ public class AppConfig {
     }
 
     @Bean
+    public DaoAuthenticationProvider daoAuthenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setPasswordEncoder(passwordEncoder());
+        provider.setUserDetailsService(jwtUserDetailsService);
+        return provider;
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -127,7 +137,7 @@ public class AppConfig {
                                 .anyRequest()
                                 .authenticated())
                 .anonymous(AbstractHttpConfigurer::disable)
-                .addFilterBefore(new JwtTokenFilter(jwtTokenProvider),
+                .addFilterBefore(jwtTokenFilter,
                         UsernamePasswordAuthenticationFilter.class);
         http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));
         return http.build();

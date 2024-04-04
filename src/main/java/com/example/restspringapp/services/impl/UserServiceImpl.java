@@ -5,6 +5,7 @@ import com.example.restspringapp.domain.user.Role;
 import com.example.restspringapp.domain.user.User;
 import com.example.restspringapp.repo.UserRepo;
 import com.example.restspringapp.services.UserService;
+import com.example.restspringapp.web.dto.user.UserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -47,19 +48,19 @@ public class UserServiceImpl implements UserService{
             @Cacheable(value = "UserService::getById", key = "#user.id"),
             @Cacheable(value = "UserService::getByEmail", key = "#user.email")
     })
-    public User create(final User user) {
-        if (userRepo.findByEmail(user.getEmail()).isPresent()) {
+    public User create(final UserDto dto) {
+        if (userRepo.findByEmail(dto.getEmail()).isPresent()) {
             throw new IllegalStateException("User already exists");
         }
-        if (!user.getPassword().equals(user.getPasswordConfirmation())) {
+        if (!dto.getPassword().equals(dto.getPasswordConfirmation())) {
             throw new IllegalStateException("Password and password confirmation don`t match");
         }
+        var user = new User();
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         Set<Role> roles = Set.of(Role.ROLE_USER);
         user.setRoles(roles);
         user.setTasks(new ArrayList<>());
-        userRepo.save(user);
-        return user;
+        return userRepo.save(user);
     }
 
     @Override
@@ -68,12 +69,12 @@ public class UserServiceImpl implements UserService{
             @CachePut(value = "UserService::getById", key = "#user.id"),
             @CachePut(value = "UserService::getByEmail", key = "#user.email")
     })
-    public User update(final User user) {
-        var existing = getById(user.getId());
-        existing.setEmail(user.getEmail());
-        existing.setFirstname(user.getFirstname());
-        existing.setLastname(user.getLastname());
-        existing.setPassword(passwordEncoder.encode(user.getPassword()));
+    public User update(final UserDto dto) {
+        var existing = getById(dto.getId());
+        existing.setEmail(dto.getEmail());
+        existing.setFirstname(dto.getFirstname());
+        existing.setLastname(dto.getLastname());
+        existing.setPassword(passwordEncoder.encode(dto.getPassword()));
         userRepo.save(existing);
         return existing;
     }

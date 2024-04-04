@@ -1,11 +1,10 @@
 package com.example.restspringapp.web.dto.auth;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
+@AllArgsConstructor
 public class JwtResponse {
-    private Long id;
-    private String email;
     private String accessToken;
-    private String refreshToken;
 }
