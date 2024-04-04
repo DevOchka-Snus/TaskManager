@@ -25,8 +25,7 @@ spring:
 security:
   jwt:
     secret: ${JWT_SECRET}
-    access: 1
-    refresh: 30
+    jwt-lifetime: 10m
 springdoc:
   override-with-generic-response: false
 
